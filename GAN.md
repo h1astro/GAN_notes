@@ -192,3 +192,54 @@ JS散度
 * 深度神经网络handle一切
 * 评价俩个分布的相似性是一个重难点
 * 能否结合统计学方法与DL方法的优缺点
+
+
+
+### 问题：
+
+* 【思考题】虽然理论上GAN的全局最优解和可收敛性已经得到证明，但实践上还可能存在哪些问题，该如何解决？
+
+​	根据价值函数 V(G,D) 的定义，需要求两个数学期望，即 E[log(D(x))] 和 E[log(1-D(G(z)))]，其中 x 服从真实数据分布，z 服从初始化分布。但在实践中，没有办法利用积分求这两个数学期望的，所以一般从无穷的真实数据和无穷的生成器中做采样以逼近真实的数学期望。
+
+​	必须使用迭代和数值计算的方法实现极小极大化博弈过程。在训练的内部循环中完整地优化 D 在计算上是不允许的，并且有限的数据集也会导致过拟合。因此我们可以在 k 个优化 D 的步骤和一个优化 G 的步骤间交替进行。那么我们只需慢慢地更新 G，D 就会一直处于最优解的附近，这种策略类似于 SML/PCD 训练的方式。
+
+**Mode collapse(模型崩溃)**
+Mode collapse 是指 GAN 生成的样本单一，其认为满足某一分布的结果为 true，其他为 False，导致以上结果。
+自然数据分布是非常复杂，且是多峰值的(multimodal)。也就是说数据分布有很多的峰值(peak)或众数(mode)。每个 mode 都表示相似数据样本的聚集，但与其他 mode 是不同的。
+在 mode collapse 过程中，生成网络 G 会生成属于有限集 mode 的样本。当 G 认为可以在单个 mode 上欺骗判别网络 D 时，G 就会生成该 mode 外的样本。
+
+**Convergence(收敛)**
+GAN 训练过程中遇到的一个问题是什么时候停止训练？因为判别网络 D 损失降级会改善生成网络 G 的损失(反之亦然)，因此无法根据损失函数的值来判断收敛，
+
+
+
+* 【代码实践】对提供的现有代码进行完善，加入模型保存、模型推断代码
+
+```python
+    from torchvision.utils import save_image
+
+    epoch = 0 # temporary
+    batches_done = epoch * len(dataloader) + i
+    if batches_done % opt.sample_interval == 0:
+        save_image(gen_imgs.data[:25], "images/%d.png" % batches_done, nrow=5, normalize=True) # 保存生成图像
+        
+        os.makedirs("model", exist_ok=True) # 保存模型
+        torch.save(generator, 'model/generator.pkl') 
+        torch.save(discriminator, 'model/discriminator.pkl')
+        
+        print("gen images saved!\n")
+        print("model saved!")
+```
+
+
+
+* 【总结】搜索了解其它生成式模型，如VAE、自回归模型等，自行总结GAN与其它生成式模型等异同
+
+**1) 生成对抗网络（GAN）**。
+
+**2) 变分自动编码模型（VAE）**。它依靠的是传统的概率图模型的框架，通过一些适当的联合分布的概率逼近，简化整个学习过程，使得所学习到的模型能够很好地解释所观测到的数据。
+
+**3) 自回归模型（Auto-regressive）**。简单认为，每个变量只依赖于它的分布，只依赖于它在某种意义上的近邻。例如将自回归模型用在图像的生成上。那么像素的取值只依赖于它在空间上的某种近邻。现在比较流行的自回归模型，包括最近刚刚提出的像素CNN或者像素RNN，它们可以用于图像或者视频的生成。
+
+
+
