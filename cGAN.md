@@ -186,3 +186,7 @@ C：启发点
 * 【总结】了解在cGAN之后，GAN在多模态任务上还有哪些进展
 
  TextToImage ： stackGAN、TAC-GAN、Generative Adversarial Text to Image Synthesis、Learning What and Where to Draw
+
+
+
+多模态学习链接：https://www.cnblogs.com/CV-life/p/10152745.html
