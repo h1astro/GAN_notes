@@ -154,3 +154,35 @@ C：启发点
 * 多模态的ML任务存在巨大的潜力
 * 快+模型应用到新领域
 * 把不同领域的最新成果结合起来，产生化学反应
+
+
+
+
+
+### 课后作业
+
+* 【思考题】本论文的多模态任务，是输入图像输出标签，如果要输入标签输出图像，网络该如何修改？
+
+加入注意力机制，将标签编码成数字作为输入特征，其他网络结构可以不变
+
+* 【代码实战】对提供的现有代码进行完善，加入模型保存、模型推断代码
+
+```pyth
+    from torchvision.utils import save_image
+
+    epoch = 0 # temporary
+    batches_done = epoch * len(dataloader) + i
+    if batches_done % opt.sample_interval == 0:
+        save_image(gen_imgs.data[:25], "images/%d.png" % batches_done, nrow=5, normalize=True) # 保存生成图像
+        
+        os.makedirs("model", exist_ok=True) # 保存模型
+        torch.save(generator, 'model/generator.pkl') 
+        torch.save(discriminator, 'model/discriminator.pkl')
+        
+        print("gen images saved!\n")
+        print("model saved!")
+```
+
+* 【总结】了解在cGAN之后，GAN在多模态任务上还有哪些进展
+
+ TextToImage ： stackGAN、TAC-GAN、Generative Adversarial Text to Image Synthesis、Learning What and Where to Draw
