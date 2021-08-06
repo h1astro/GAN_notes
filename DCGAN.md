@@ -184,3 +184,118 @@ SVHN(Street View House Numbers)
 * 表征学习值得关注
 * NLP和图像这两大领域，最好都能去有所了解
 
+
+
+**Latent Space**-> zhuanlan.zhihu.com/p/32135185
+
+## 练习题
+
+* 【思考题】2016年之后，CNN又出现了很多改进，其中还有哪些可以再应用到DCGAN
+
+transformer混合cnn或者纯transformer来替代cnn，加入attention基础
+
+* 【代码实践】对提供的现有代码进行完善，加入模型保存、模型推断代码
+
+```py
+    from torchvision.utils import save_image
+
+    epoch = 0 # temporary
+    batches_done = epoch * len(dataloader) + i
+    if batches_done % opt.sample_interval == 0:
+        save_image(gen_imgs.data[:25], "images/%d.png" % batches_done, nrow=5, normalize=True) # 保存生成图像
+        
+        os.makedirs("model", exist_ok=True) # 保存模型
+        torch.save(generator, 'model/generator.pkl') 
+        torch.save(discriminator, 'model/discriminator.pkl')
+        
+        print("gen images saved!\n")
+        print("model saved!")
+```
+
+
+
+* 【总结】对各种特征正则化方法，以及各种上/下采样方法 分别进行总结
+
+1. L1 & L2范数
+
+首先介绍一下范数的定义，假设x是一个向量，它的$L^P$范数定义:
+ $||x||_p = (\sum_{i}^{}{|x_i|^p})^\frac{1}{p}]$
+ 在目标函数后面添加一个系数的"**惩罚项**"是正则化的常用方式，为了防止系数过大从而让模型变得复杂。在加了正则化项之后的目标函数为:
+$\bar{J}(w, b) = J(w, b) + \frac{\lambda}{2m}\Omega(w)$ 
+ 式中， $\frac{\lambda}{2m}$ 是一个常数， $m$为样本个数， $\lambda$ 是一个超参数，用于控制正则化程度。
+
+ $L^1$正则化时，对应惩罚项为 L1 范数 :
+$\Omega(w)=||w||_1 = \sum_{i}^{}{|w_i|}$
+ $L^2$正则化时，对应惩罚项为 L2 范数:
+
+$\Omega(w)=||w||_2^2 = \sum_{i}^{}{w_i^2}$
+
+从上式可以看出，$L^1$ 正则化通过让原目标函数加上了**所有特征系数绝对值的和**来实现正则化，而 $L^2$ 正则化通过让原目标函数加上了**所有特征系数的平方和**来实现正则化。
+
+两者都是通过加上一个和项来限制参数大小，却有不同的效果： $L^1$ 正则化更适用于**特征选择**，而  $L^2$正则化更适用于**防止模型过拟合**。
+
+2. 数据增强
+
+小幅旋转，平移，放大，缩小，随机选取，噪声等
+
+3. dropout
+
+基本步骤是在每一次的迭代中，随机删除一部分节点，只训练剩下的节点。每次迭代都会随机删除，每次迭代删除的节点也都不一样，相当于每次迭代训练的都是不一样的网络，通过这样的方式降低节点之间的关联性以及模型的复杂度，从而达到正则化的效果。
+
+##### 上采样
+
+别名：**放大图像**，也叫图像插值。
+
+目的：**放大原图**，从而可以显示在**更高分辨率**的显示设备上。
+
+缺点：会对图像的质量造成影响，并没有带来更多的**信息**。
+
+方法：
+
+1. 内插值。插值方法有很多，比如均值，中值，最近邻。通过这种方法，在周围像素色彩的基础上用数学公式计算丢失像素的色彩。
+2. 反卷积。即通过转置卷积核的方法来实现卷积的逆过程。
+3. 反池化。在池化过程，比如max-pooling时，要记录下每个元素对应kernel中的坐标。反池化时即将每一个元素根据坐标填写，其余位置补0.
+
+下面动图为反卷积操作
+
+![padding_strides_odd_transposed.gif](https://github.com/vdumoulin/conv_arithmetic/blob/master/gif/padding_strides_odd_transposed.gif?raw=true)
+
+##### 双线性插值
+
+双线性插值，又称为双线性内插。在数学上，双线性插值是对线性插值在二维直角网格上的扩展，用于对双变量函数（例如 *x* 和 *y*）进行插值。其核心思想是在两个方向分别进行一次线性插值。
+
+首先在x方向上，
+
+$f(x,y_1)\approx \frac{x_2-x}{x_2-x_1}f(Q_{11})+\frac{x-x_1}{x_2-x_1}f(Q_{21})$
+
+$f(x,y_2)\approx \frac{x_2-x}{x_2-x_1}f(Q_{12})+\frac{x-x_1}{x_2-x_1}f(Q_{22})$
+
+然后在y方向上，
+
+$f(x,y)\approx \frac{y_2-y}{y_2-y_1}f(x,y_1)+\frac{y-y_1}{y_2-y_1}f(x,y_2)$
+
+$=\frac{y_2-y}{y_2-y_1}(\frac{x_2-x}{x_2-x_1}f(Q_{11})+\frac{x-x_1}{x_2-x_1}f(Q_{21}))+\quad \frac{y-y_1}{y_2-y_1}(\frac{x_2-x}{x_2-x_1}f(Q_{12})+\frac{x-x_1}{x_2-x_1}f(Q_{22}))$
+
+$...$
+
+##### 下采样
+
+别名：**缩小图像**，降采样
+
+目的：
+
+1. 缩小原图，即生成对应图像的缩略图。
+2. 使图像符合对应的显示区域
+3. 降低特征的维度并保留有效信息，一定程度上避免过拟合，保持旋转、平移、伸缩不变形。
+
+原理：把一个位于原始图像上的s*s的窗口变成一个像素：
+
+$p_k=\underset{i\in win(k)}{\sum} I_i/s^2$
+
+图若为x*y，则下采样之后原图的尺寸为(x/s)(y/s).这说明s最好是x和y的公约数。
+
+实现：池化(pooling)。池化操作是在卷积神经网络中经常采用过的一个基本操作，一般在卷积层后面都会接一个池化操作,使用的比较多的也是max-pooling即最大池化，因为max-pooling更像是做了特征选择，选出了分类辨识度更好的特征，提供了非线性。
+
+下面动图为卷积操作
+
+![same_padding_no_strides_transposed.gif](https://github.com/vdumoulin/conv_arithmetic/blob/master/gif/same_padding_no_strides_transposed.gif?raw=true)
