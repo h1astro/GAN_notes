@@ -238,3 +238,55 @@ C 启发点
 * 随着深度学习的快速发展，许多直觉上work的技巧发挥了巨大作用
 * 图像理解是图像生成的基础，生成任务是理解任务的自然延伸
 
+
+
+**GAN评价指标最全汇总**: https//zhuanlan.zhihu.com/p/109342043
+
+### 课后作业
+
+* 【思考题】目前的半监督学习损失函数是否还存在改进空间？在训练后期，如果生成的图像已经跟真实图像一模一样，这时的损失函数是否应做调整
+  * Pseudo-Label : The Simple and Efficient Semi-Supervised Learning Method for Deep Neural Networks
+  * Virtual Adversarial Training: a Regularization Method for Supervised and Semi-supervised Learning
+  * Temporal Ensembling for Semi-Supervised Learning
+  * Mean teachers are better role models: Weight-averaged consistency targets improve semi-supervised deep learning results
+  * mixup: BEYOND EMPIRICAL RISK MINIMIZATION
+  * Interpolation Consistency Training forSemi-Supervised Learning
+  * MixMatch: A Holistic Approach to Semi-supervise learning
+  * ReMixMatch: Semi-Supervised Learning with Distribution Alignment and Augmentation Anchoring
+  * FixMatch: Simplifying Semi-Supervised Learning withConsistency and Confidence
+
+![image-20210811115418980](/Users/shanjh/Library/Application Support/typora-user-images/image-20210811115418980.png)
+
+在训练后期，如果生成的图像已经跟真实图像一模一样，这时的损失函数可以调整下各损失权重大小
+
+* 【代码实践】把论文中提到的其它训练技巧逐个添加到代码中，观察训练效果是否提升
+
+![image-20210810111442001](/Users/shanjh/Library/Application Support/typora-user-images/image-20210810111442001.png)
+
+* 【总结】搜索总结神经网络中，各类常用的Normalization方式以及各自的优缺点
+
+神经网络中有各种归一化算法：Batch Normalization (BN)、Layer Normalization (LN)、Instance Normalization (IN)、Group Normalization (GN)。从公式看它们都差不多，无非是减去均值，除以标准差，再施以线性映射。主要区别在于操作的 feature map 维度不同。
+
+![image-20210811122439179](/Users/shanjh/Library/Application Support/typora-user-images/image-20210811122439179.png)
+
+BN，批样本单通道。 **纵向规范化**
+LN，单样本。 **横向规范化**
+Instance，单样本单通道。
+
+GN，单样本批通道。
+
+另还有：Weight Normalization —— 参数规范化；Cosine Normalization —— 余弦规范化
+
+
+
+**Batch Normalization (BN)** 是最早出现的，也通常是效果最好的归一化方式。基本思想是：在将 x 送给神经元之前，先对其做**平移和伸缩变换**， 将 x 的分布规范化成在固定区间范围的标准分布。
+
+$h=f(g*\frac{x-\mu}{\sigma}+b)$
+
+BN 的一个**缺点**是需要较大的 batchsize 才能合理估训练数据的均值和方差，这导致内存很可能不够用，同时它也很难应用在训练数据长度不同的 RNN 模型上。**Layer Normalization (LN)** 的一个优势是不需要批训练，在单条数据内部就能归一化。**缺点**是如果不同输入特征不属于相似的类别（比如颜色和大小），那么 LN 的处理可能会降低模型的表达能力。
+
+**Instance Normalization (IN)** 最初用于图像的风格迁移。作者发现，在生成模型中， feature map 的各个 channel 的均值和方差会影响到最终生成图像的风格，因此可以先**把图像在 channel 层面归一化，然后再用目标风格图片对应 channel 的均值和标准差“去归一化”，以期获得目标图片的风格**。
+
+**Group Normalization (GN) 适用于占用显存比较大的任务，例如图像分割**。
+
+参考：https://zhuanlan.zhihu.com/p/33173246
