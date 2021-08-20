@@ -1,5 +1,9 @@
 ## Pix2Pix
 
+> notes written by h1astro
+>
+> 如果创新度不够，可以多角度实验，提高泛用性
+
 #### 摘要
 
 1. 研究条件GAN网络在图像翻译任务中的通用解决方案
@@ -143,4 +147,124 @@ $G^*=arg\underset{G}{min} \underset{D}{max} \mathcal  L_{cGAN}(G,D)+\lambda \mat
 * 推断时保留dropout，来增加输出的随机性
 * 推断时使用batch为1的batch normalization，实际就是instance normalization
 * instance normalization仅在图像内部进行操作，可以保留不同生成图像之间的独立性 
+
+#### 人工评价
+
+Amazon Mechanical Turk （AMT）
+
+任务：地图生成，航拍照片生成，图像上色
+
+* 限制观看时间，每张图像停留一秒钟，答题时间不限
+* 每次评测只针对一个算法，包含50张图像
+* 前10张图像为练习题，答题后提供反馈，后40张为正式标注
+* 每批评测数据由50个标注者标注，每个评测者只能参与一次评测
+* 评测不包含测验环节
+
+
+
+#### FCN-score
+
+Fully Convolutional Networks
+
+* 判别图像的类别是否能被模型识别出来，类似于Inception Score
+* 使用应用于语义分割任务的流行网络结构-- FCN-8s，并在cityscapes数据集上进行训练
+* 根据网络分类的精度，来对图像的质量进行打分
+* 由于图像翻译不太关注生成图像的多样性，所以不需要像Inception Score 一样关注总体生成图像的分布
+
+![image-20210820095654014](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820095654014.png)
+
+#### 目标函数分析
+
+* 只使用L1 loss，结果合理但模糊
+* 只使用cGAN loss，结果锐利但存在artifacts
+* 通过对L1 loss和cGAN loss进行一定的加权（100:1），可以结合两者的优点
+* 只使用GAN loss，生成图像发生模式崩溃
+* 使用GAN+L1，结果于CGAN+L1类似
+
+![image-20210820100046970](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820100046970.png)
+
+![image-20210820100057154](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820100057154.png)
+
+* 光谱维度中的情况，与像素维度傻姑娘的情况类似
+* 只使用L1 loss，更倾向于生成平均的浅灰色；使用cGAN loss，生成的色彩更接近真实情况
+
+![image-20210820100158999](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820100158999.png)
+
+#### 模型分析
+
+##### 生成器分析
+
+Encoder-Decoder VS U-net
+
+在两种loss下，U-net的效果都显著优于Encoder-Decoder
+
+![image-20210820100524785](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820100524785.png)
+
+##### 判别器分析
+
+* 比较不同的Patch大小的差异，默认使用L1+cGAN loss
+
+* 1\*1的patch相比于L1 loss，只是增强了生成图像的色彩使用16\*16的patch，图像锐度有所提升，但存在显著的tiling artifacts
+* 使用70\*70的patch，取得了最佳效果
+* 使用286\*286的完整图像输入，生成结果比70\*70的要差,因为网络的参数量大很多，训练更难以收敛
+
+#### 应用分析
+
+##### Map-Photo
+
+Map to Photo， L1+ cGan loss的结果显著优于L1 loss
+
+photo to map，L1+cGan loss的结果接近于只使用L1 loss
+
+原因分析：可能是Map相比对Photo，几何特征要显著的多
+
+![image-20210820101559670](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820101559670.png)
+
+![image-20210820101608023](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820101608023.png)
+
+##### 图像上色
+
+L1+cGan loss的结果，与只使用L2 loss的结果较为接近
+
+相比于此前专门针对图像上色问题的方法，效果仍有较大差距
+
+![image-20210820101710451](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820101710451.png)
+
+![image-20210820101721635](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820101721635.png)
+
+##### 语义分割
+
+* 只使用cGAN loss时，生成的效果和模型准确度还可以接受
+* 使用L1+cGAN loss，效果反而不如只使用L1 loss
+* 说明对于CV领域的问题，传统loss可能就够了 加入GAN loss 无法获得增益
+
+![image-20210820101843437](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820101843437.png)
+
+![image-20210820101850520](/Users/shanjh/Library/Application Support/typora-user-images/image-20210820101850520.png)
+
+#### 结论
+
+* 条件对抗网络在许多图像翻译任务上都非常有应用潜力
+* 特别是在高度结构化图像输出的任务上
+* 使用不同的数据集训练pix2pix，可以用于各种图像翻译任务
+
+#### 论文总结
+
+##### 关键点
+
+* 把语义分割任务的最新成果，与cGAN结合进行推广
+* 把像素级loss与GAN loss相结合
+* 在各类图像翻译任务上进行丰富实验
+
+##### 创新点
+
+* 大视野，针对一个广泛的应用场景
+* 用传统loss处理低频信息，GAN loss处理高频信息
+* 对图像处理与CV任务进行联合分析
+
+##### 启发点
+
+* 对已有的成果推广其应用范围，也能产生很大的价值
+* 简洁往往是泛用性的前提条件
+* 如果研究创新度不够，就从其它角度挖掘亮点
 
