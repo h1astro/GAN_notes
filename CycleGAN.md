@@ -270,3 +270,14 @@ GAN alone和GAN+forward出现了模式崩溃，两幅图一样了
 
 * 一个简单而古老的idea，依靠故事好、实验多、易复现，同样能脱颖而出
 * 无监督学习模型拥有非常广泛的应用范围，存在巨大的研究价值
+
+#### 推荐资料       
+
+Deep Domain Adaptation论文集   
+https://zhuanlan.zhihu.com/p/53359505    
+
+Neural Style Transfer 神经风格迁移详解    
+https://blog.csdn.net/Cowry5/article/details/81037767
+
+ECCV 2020 ｜ 基于对抗一致性的非匹配图像转换     
+https://zhuanlan.zhihu.com/p/156092551?utm_source=wechat_session  
