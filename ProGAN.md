@@ -272,3 +272,18 @@ MS-SSIM越小越好
 * 根据实际需求选择合适的normalization
 * 学习速率的影响不可小觑
 
+
+
+#### 推荐资料       
+
+**模型参数初始化总结**    
+https://blog.csdn.net/qq_27825451/article/details/88707423
+
+**优化器比较**     
+https://www.cnblogs.com/guoyaohua/p/8542554.html
+      
+**其他能实现高清人脸生成的模型**    
+VQ-VAE2:  https://www.jianshu.com/p/57bb6fdc143a   
+GLOW:  https://blog.csdn.net/c9Yv2cf9I06K2A9E/article/details/81039361?utm_medium=distribute.pc_relevant.none-task-blog-title-3&spm=1001.2101.3001.4242     
+NVAE:  https://blog.csdn.net/c9Yv2cf9I06K2A9E/article/details/107328328?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.channel_param    
+ALAE:  https://www.cnblogs.com/king-lps/p/12796393.html      
